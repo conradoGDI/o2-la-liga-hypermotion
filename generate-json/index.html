@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Partidos de la Semana</title>
+		<style>
+			:root {
+				color-scheme: light;
+				--bg: #f4efe6;
+				--panel: rgba(255, 250, 242, 0.9);
+				--panel-strong: #fffdf8;
+				--ink: #1e2430;
+				--muted: #5f6b7a;
+				--accent: #006d77;
+				--accent-strong: #004f56;
+				--border: rgba(30, 36, 48, 0.12);
+				--shadow: 0 20px 50px rgba(30, 36, 48, 0.12);
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				font-family: Georgia, "Times New Roman", serif;
+				color: var(--ink);
+				background:
+					radial-gradient(circle at top left, rgba(0, 109, 119, 0.14), transparent 35%),
+					radial-gradient(circle at bottom right, rgba(238, 155, 0, 0.12), transparent 28%),
+					linear-gradient(135deg, #f8f3ea 0%, #efe5d3 100%);
+			}
+
+			main {
+				width: min(1100px, calc(100% - 32px));
+				margin: 40px auto;
+				padding: 32px;
+				border: 1px solid var(--border);
+				border-radius: 24px;
+				background: var(--panel);
+				backdrop-filter: blur(12px);
+				box-shadow: var(--shadow);
+			}
+
+			h1 {
+				margin: 0 0 12px;
+				font-size: clamp(2.2rem, 5vw, 3.8rem);
+				line-height: 0.95;
+				letter-spacing: -0.04em;
+			}
+
+			p {
+				margin: 0;
+				color: var(--muted);
+				font-size: 1rem;
+				line-height: 1.6;
+			}
+
+			.controls {
+				display: grid;
+				gap: 14px;
+				margin: 28px 0 24px;
+			}
+
+			.token-row {
+				display: grid;
+				gap: 10px;
+			}
+
+			label {
+				font-size: 0.95rem;
+				font-weight: 700;
+			}
+
+			input {
+				width: 100%;
+				padding: 14px 16px;
+				border: 1px solid var(--border);
+				border-radius: 14px;
+				font: inherit;
+				color: var(--ink);
+				background: var(--panel-strong);
+			}
+
+			.actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 16px;
+				align-items: center;
+			}
+
+			button {
+				border: 0;
+				border-radius: 999px;
+				padding: 14px 22px;
+				font: inherit;
+				font-weight: 700;
+				color: #ffffff;
+				background: linear-gradient(135deg, #004f56 0%, #005f73 100%);
+				cursor: pointer;
+				transition: transform 160ms ease, opacity 160ms ease;
+			}
+
+			button:hover:not(:disabled) {
+				transform: translateY(-1px);
+			}
+
+			button:disabled {
+				opacity: 0.55;
+				cursor: not-allowed;
+			}
+
+			.status {
+				min-height: 24px;
+				font-weight: 600;
+				color: var(--accent-strong);
+			}
+
+			.countdown {
+				font-variant-numeric: tabular-nums;
+				color: var(--muted);
+			}
+
+			.layout {
+				display: grid;
+				gap: 24px;
+			}
+
+			.panel {
+				padding: 22px;
+				border-radius: 20px;
+				border: 1px solid var(--border);
+				background: rgba(255, 255, 255, 0.7);
+			}
+
+			.panel h2 {
+				margin: 0 0 14px;
+				font-size: 1.1rem;
+			}
+
+			.table-wrap {
+				overflow-x: auto;
+			}
+
+			table {
+				width: 100%;
+				border-collapse: collapse;
+			}
+
+			th,
+			td {
+				padding: 14px 12px;
+				text-align: left;
+				border-bottom: 1px solid var(--border);
+			}
+
+			th {
+				font-size: 0.82rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+
+			tbody tr:hover {
+				background: rgba(0, 109, 119, 0.05);
+			}
+
+			pre {
+				margin: 0;
+				padding: 18px;
+				overflow: auto;
+				border-radius: 16px;
+				background: #1f2937;
+				color: #f9fafb;
+				font-size: 0.92rem;
+				line-height: 1.5;
+			}
+
+			.empty {
+				color: var(--muted);
+			}
+
+			@media (max-width: 720px) {
+				main {
+					margin: 20px auto;
+					padding: 22px;
+				}
+
+				th,
+				td {
+					padding: 12px 8px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>Partidos de esta semana</h1>
+			<p>
+				Pulsa el botón para consultar la API, descargar un JSON con los partidos de la semana actual y pintar la tabla con el día y la hora en horario de Madrid.
+			</p>
+
+			<section class="controls">
+				<p>
+					La petición se hace contra un endpoint local para evitar el bloqueo CORS del navegador. Arranca el proyecto con npm start y abre http://localhost:3000/generate-json/
+				</p>
+
+				<div class="actions">
+					<button id="generate-button" type="button">Generar JSON y tabla</button>
+					<span id="countdown" class="countdown"></span>
+				</div>
+
+				<div id="status" class="status" aria-live="polite"></div>
+			</section>
+
+			<section class="layout">
+				<article class="panel">
+					<h2>Tabla de partidos</h2>
+					<div class="table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th>Competición</th>
+									<th>Local</th>
+									<th>Visitante</th>
+									<th>Día</th>
+									<th>Hora</th>
+								</tr>
+							</thead>
+							<tbody id="matches-table-body">
+								<tr>
+									<td class="empty" colspan="5">Todavía no hay datos cargados.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</article>
+
+				<article class="panel">
+					<h2>JSON generado</h2>
+					<pre id="json-output">[]</pre>
+				</article>
+			</section>
+		</main>
+
+		<script>
+			const API_URL = "/api/matches";
+			const DISABLE_SECONDS = 60;
+			const MADRID_TIMEZONE = "Europe/Madrid";
+
+			const button = document.getElementById("generate-button");
+			const countdownElement = document.getElementById("countdown");
+			const statusElement = document.getElementById("status");
+			const tableBody = document.getElementById("matches-table-body");
+			const jsonOutput = document.getElementById("json-output");
+
+			let countdownIntervalId = null;
+
+			function getWeekRange(referenceDate = new Date()) {
+				const start = new Date(referenceDate);
+				const end = new Date(referenceDate);
+				const weekday = (referenceDate.getDay() + 6) % 7;
+
+				start.setHours(0, 0, 0, 0);
+				start.setDate(referenceDate.getDate() - weekday);
+
+				end.setHours(23, 59, 59, 999);
+				end.setDate(start.getDate() + 6);
+
+				return { start, end };
+			}
+
+			function toApiDate(date) {
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, "0");
+				const day = String(date.getDate()).padStart(2, "0");
+				return `${year}-${month}-${day}`;
+			}
+
+			function formatMatchDate(utcDate) {
+				const date = new Date(utcDate);
+
+				return {
+					day: new Intl.DateTimeFormat("es-ES", {
+						weekday: "long",
+						day: "2-digit",
+						month: "2-digit",
+						timeZone: MADRID_TIMEZONE,
+					}).format(date),
+					hour: new Intl.DateTimeFormat("es-ES", {
+						hour: "2-digit",
+						minute: "2-digit",
+						hour12: false,
+						timeZone: MADRID_TIMEZONE,
+					}).format(date),
+				};
+			}
+
+			function mapMatches(matches) {
+				return matches.map((match) => {
+					const formatted = formatMatchDate(match.utcDate);
+
+					return {
+						competition: match.competition?.name || "Sin competición",
+						homeTeam: match.homeTeam?.name || "Sin local",
+						awayTeam: match.awayTeam?.name || "Sin visitante",
+						day: formatted.day,
+						hour: formatted.hour,
+					};
+				});
+			}
+
+			function renderTable(rows) {
+				if (!rows.length) {
+					tableBody.innerHTML = '<tr><td class="empty" colspan="5">No hay partidos para esta semana.</td></tr>';
+					return;
+				}
+
+				tableBody.innerHTML = rows
+					.map(
+						(row) => `
+							<tr>
+								<td>${row.competition}</td>
+								<td>${row.homeTeam}</td>
+								<td>${row.awayTeam}</td>
+								<td>${row.day}</td>
+								<td>${row.hour}</td>
+							</tr>
+						`
+					)
+					.join("");
+			}
+
+			function renderJson(data) {
+				jsonOutput.textContent = JSON.stringify(data, null, 2);
+			}
+
+			function downloadJson(data) {
+				const blob = new Blob([JSON.stringify(data, null, 2)], {
+					type: "application/json",
+				});
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+
+				link.href = url;
+				link.download = `partidos-semana-${toApiDate(new Date())}.json`;
+				link.click();
+
+				URL.revokeObjectURL(url);
+			}
+
+			function setStatus(message, isError = false) {
+				statusElement.textContent = message;
+				statusElement.style.color = isError ? "#b42318" : "var(--accent-strong)";
+			}
+
+			function setButtonDisabledWithCountdown() {
+				let remainingSeconds = DISABLE_SECONDS;
+				button.disabled = true;
+				countdownElement.textContent = `Disponible en ${remainingSeconds}s`;
+
+				clearInterval(countdownIntervalId);
+				countdownIntervalId = window.setInterval(() => {
+					remainingSeconds -= 1;
+
+					if (remainingSeconds <= 0) {
+						clearInterval(countdownIntervalId);
+						countdownIntervalId = null;
+						button.disabled = false;
+						countdownElement.textContent = "";
+						return;
+					}
+
+					countdownElement.textContent = `Disponible en ${remainingSeconds}s`;
+				}, 1000);
+			}
+
+			async function fetchMatchesOfWeek() {
+				const { start, end } = getWeekRange();
+
+				if (window.location.protocol !== "http:" && window.location.protocol !== "https:") {
+					throw new Error("Abre esta página desde http://localhost:3000/generate-json/ después de ejecutar npm start.");
+				}
+
+				const url = new URL(API_URL, window.location.origin);
+
+				url.searchParams.set("dateFrom", toApiDate(start));
+				url.searchParams.set("dateTo", toApiDate(end));
+
+				const response = await fetch(url, {
+					method: "GET",
+				});
+
+				if (!response.ok) {
+					const errorPayload = await response.json().catch(() => null);
+					throw new Error(errorPayload?.error || `La API respondió con estado ${response.status}.`);
+				}
+
+				return response.json();
+			}
+
+			async function handleGenerate() {
+				setButtonDisabledWithCountdown();
+				setStatus("Consultando partidos de la semana...");
+
+				try {
+					const payload = await fetchMatchesOfWeek();
+					const rows = mapMatches(payload.matches || []);
+
+					renderTable(rows);
+					renderJson(rows);
+					downloadJson(rows);
+					setStatus(`Se han procesado ${rows.length} partidos.`);
+				} catch (error) {
+					const message = error instanceof Error ? error.message : "Error desconocido al consultar la API.";
+					setStatus(message, true);
+				}
+			}
+
+			button.addEventListener("click", handleGenerate);
+		</script>
+	</body>
+</html>
