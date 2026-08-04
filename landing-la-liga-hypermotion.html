@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Landing LaLiga Hypermotion</title>
+    <style>
+      :root {
+        --bg: #f6f1e8;
+        --panel: rgba(255, 252, 247, 0.88);
+        --ink: #16202a;
+        --muted: #5b6774;
+        --line: rgba(22, 32, 42, 0.12);
+        --accent: #8a1538;
+        --accent-2: #c58b2b;
+        --success: #0f766e;
+        --shadow: 0 24px 60px rgba(22, 32, 42, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(138, 21, 56, 0.12), transparent 32%),
+          radial-gradient(circle at bottom right, rgba(197, 139, 43, 0.16), transparent 30%),
+          linear-gradient(145deg, #fbf7ef 0%, #efe3cf 100%);
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 28px auto;
+        padding: 32px;
+        border-radius: 28px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(12px);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 6vw, 4.8rem);
+        line-height: 0.92;
+        letter-spacing: -0.05em;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 74ch;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .panel {
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+      }
+
+      .panel p,
+      .panel li,
+      .status {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .status {
+        min-height: 24px;
+        font-weight: 600;
+      }
+
+      .status.ok {
+        color: var(--success);
+      }
+
+      .status.error {
+        color: #b42318;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .badge {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        font-size: 0.92rem;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 640px;
+      }
+
+      th,
+      td {
+        padding: 14px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background: #f9f3e8;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      tbody tr:hover {
+        background: rgba(197, 139, 43, 0.08);
+      }
+
+      .team-cell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .team-name {
+        min-width: 0;
+      }
+
+      .team-crest {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        flex: 0 0 28px;
+      }
+
+      .empty {
+        color: var(--muted);
+        text-align: center;
+      }
+
+      code {
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(22, 32, 42, 0.06);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.92em;
+      }
+
+      @media (max-width: 860px) {
+        main {
+          width: min(100% - 20px, 1180px);
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>La Liga Hypermotion</h1>
+        <p>
+          La página se abre en localhost y carga automáticamente el CSV del proyecto para rellenar la tabla.
+        </p>
+      </section>
+
+      <section class="layout">
+        <section class="panel">
+          <div id="status" class="status">Cargando CSV desde /data/landing-la-liga-hypermotion.csv...</div>
+
+          <div class="meta">
+            <span id="file-name" class="badge">Sin archivo</span>
+            <span id="row-count" class="badge">0 filas</span>
+            <span id="column-count" class="badge">0 columnas</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead id="table-head">
+                <tr>
+                  <th>Datos CSV</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <tr>
+                  <td class="empty">Todavía no hay datos cargados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const DEFAULT_CSV_URL = "./data/landing-la-liga-hypermotion.csv";
+      const TIME_DISPLAY_FORMAT = "24h"; // Opcion alternativa: "12h"
+      const statusElement = document.getElementById("status");
+      const fileNameElement = document.getElementById("file-name");
+      const rowCountElement = document.getElementById("row-count");
+      const columnCountElement = document.getElementById("column-count");
+      const tableHead = document.getElementById("table-head");
+      const tableBody = document.getElementById("table-body");
+
+      function setStatus(message, kind) {
+        statusElement.textContent = message;
+        statusElement.className = "status";
+
+        if (kind) {
+          statusElement.classList.add(kind);
+        }
+      }
+
+      function detectDelimiter(text) {
+        const sample = text.split(/\r?\n/, 5).join("\n");
+        const semicolons = (sample.match(/;/g) || []).length;
+        const commas = (sample.match(/,/g) || []).length;
+        return semicolons > commas ? ";" : ",";
+      }
+
+      function parseCsvLine(line, delimiter) {
+        const cells = [];
+        let current = "";
+        let insideQuotes = false;
+
+        for (let index = 0; index < line.length; index += 1) {
+          const char = line[index];
+          const nextChar = line[index + 1];
+
+          if (char === '"') {
+            if (insideQuotes && nextChar === '"') {
+              current += '"';
+              index += 1;
+            } else {
+              insideQuotes = !insideQuotes;
+            }
+            continue;
+          }
+
+          if (char === delimiter && !insideQuotes) {
+            cells.push(current.trim());
+            current = "";
+            continue;
+          }
+
+          current += char;
+        }
+
+        cells.push(current.trim());
+        return cells;
+      }
+
+      function parseCsv(text) {
+        const normalized = text.replace(/^\uFEFF/, "").trim();
+
+        if (!normalized) {
+          return { headers: [], rows: [] };
+        }
+
+        const delimiter = detectDelimiter(normalized);
+        const lines = normalized.split(/\r?\n/).filter((line) => line.trim().length > 0);
+        const headers = parseCsvLine(lines[0], delimiter);
+        const rows = lines.slice(1).map((line) => parseCsvLine(line, delimiter));
+
+        return { headers, rows };
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function normalizeAssetName(value) {
+        return String(value)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-/, "")
+          .replace(/-$/, "");
+      }
+
+      function formatHeader(header) {
+        const labels = {
+          date: "Fecha",
+          "team-1": "Local",
+          time: "Hora",
+          "team-2": "Visitante",
+        };
+
+        return labels[header] || header;
+      }
+
+      function renderTeamCell(teamName) {
+        const safeTeamName = escapeHtml(teamName);
+        const crestName = normalizeAssetName(teamName);
+        const crestPath = `./assets/images/${crestName}.png`;
+
+        return `
+          <div class="team-cell">
+            <span class="team-name">${safeTeamName}</span>
+            <img
+              class="team-crest"
+              src="${crestPath}"
+              alt="Escudo de ${safeTeamName}"
+              loading="lazy"
+              onerror="this.style.display='none'"
+            />
+          </div>
+        `;
+      }
+
+      function formatTimeValue(value) {
+        const normalizedValue = String(value).trim().toLowerCase();
+        const match = normalizedValue.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+
+        if (!match) {
+          return value;
+        }
+
+        const [, hourText, minuteText, meridiem] = match;
+        let hour = Number.parseInt(hourText, 10);
+
+        if (TIME_DISPLAY_FORMAT === "12h") {
+          return `${hour}:${minuteText}${meridiem}`;
+        }
+
+        if (meridiem === "am") {
+          hour = hour === 12 ? 0 : hour;
+        } else {
+          hour = hour === 12 ? 12 : hour + 12;
+        }
+
+        return `${String(hour).padStart(2, "0")}:${minuteText}`;
+      }
+
+      function renderCell(header, value) {
+        if (header === "team-1" || header === "team-2") {
+          return `<td>${renderTeamCell(value)}</td>`;
+        }
+
+        if (header === "time") {
+          return `<td>${escapeHtml(formatTimeValue(value))}</td>`;
+        }
+
+        return `<td>${escapeHtml(value)}</td>`;
+      }
+
+      function renderTable(headers, rows) {
+        if (!headers.length) {
+          tableHead.innerHTML = "";
+          tableBody.innerHTML = '<tr><td class="empty">El CSV no contiene cabeceras válidas.</td></tr>';
+          return;
+        }
+
+        tableHead.innerHTML = `
+          <tr>
+            ${headers.map((header) => `<th>${escapeHtml(formatHeader(header))}</th>`).join("")}
+          </tr>
+        `;
+
+        if (!rows.length) {
+          tableBody.innerHTML = `<tr><td class="empty" colspan="${headers.length}">El CSV no tiene filas de datos.</td></tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = rows
+          .map((row) => {
+            const completedRow = [...row];
+
+            while (completedRow.length < headers.length) {
+              completedRow.push("");
+            }
+
+            return `
+              <tr>
+                ${completedRow.slice(0, headers.length).map((cell, index) => renderCell(headers[index], cell)).join("")}
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderCsvData(sourceLabel, text) {
+        const { headers, rows } = parseCsv(text);
+
+        renderTable(headers, rows);
+        fileNameElement.textContent = sourceLabel;
+        rowCountElement.textContent = `${rows.length} filas`;
+        columnCountElement.textContent = `${headers.length} columnas`;
+        setStatus(`CSV cargado correctamente: ${rows.length} filas.`, "ok");
+      }
+
+      async function loadDefaultCsv() {
+        setStatus("Cargando CSV desde /data/landing-la-liga-hypermotion.csv...");
+
+        try {
+          const response = await fetch(DEFAULT_CSV_URL, { method: "GET" });
+
+          if (!response.ok) {
+            throw new Error(`No se pudo cargar el CSV: ${response.status}.`);
+          }
+
+          const text = await response.text();
+          renderCsvData("data/landing-la-liga-hypermotion.csv", text);
+        } catch (error) {
+          tableHead.innerHTML = "";
+          tableBody.innerHTML = '<tr><td class="empty">No se pudo cargar el CSV.</td></tr>';
+          fileNameElement.textContent = "Sin archivo";
+          rowCountElement.textContent = "0 filas";
+          columnCountElement.textContent = "0 columnas";
+          setStatus(error instanceof Error ? error.message : "No se pudo procesar el CSV.", "error");
+        }
+      }
+
+      loadDefaultCsv();
+    </script>
+  </body>
+</html>
